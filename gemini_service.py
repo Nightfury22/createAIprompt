@@ -1,29 +1,48 @@
 import os
-from google import genai
+import json
+
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
 
 def generate_content_with_gemini(prompt: str) -> str:
-    """Communicate with the Gemini API and return the generated text."""
+    """
+    Generate content using Gemini 2.5 Flash.
+    """
+
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY not found.")
+
     try:
-        client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        client = genai.Client(api_key=api_key)
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
-            config={
-                "temperature": 0.9,
-                "top_p": 1.0,
-                "top_k": 1,
-                "max_output_tokens": 3000,
-            },
+            config=types.GenerateContentConfig(
+                temperature=0.9,
+                top_p=1.0,
+                top_k=1,
+                max_output_tokens=8000,
+                response_mime_type="application/json",
+            ),
         )
 
-        print(f"Raw Gemini Response:\n---\n{response.text}\n---")
-        return response.text
+        response_text = response.text
+
+        print("\n========== GEMINI RESPONSE ==========")
+        print(response_text)
+        print("=====================================\n")
+
+        return response_text
 
     except Exception as e:
-        print(f"Gemini API error: {e}")
-        raise RuntimeError(f"Error communicating with Gemini API: {e}")
+        print(f"Gemini API Error: {e}")
+        raise RuntimeError(
+            f"Error communicating with Gemini API: {e}"
+        )

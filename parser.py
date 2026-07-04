@@ -1,93 +1,115 @@
 print("DEBUG: parser.py is being executed!")
+
 import json
 import re
 
 
 def _extract_json_from_text(text: str) -> str | None:
-    """Extract the first JSON object or array from a text string."""
-    cleaned = re.sub(r"^```(?:json)?\s*", "", text.strip())
-    cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+    """
+    Extract a valid JSON object from Gemini response.
+    Handles:
+    - ```json ... ```
+    - extra text before/after JSON
+    - plain JSON
+    """
 
+    if not text:
+        return None
+
+    cleaned = text.strip()
+
+    # Remove markdown fences
+    cleaned = re.sub(r"^```json\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^```\s*", "", cleaned)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    cleaned = cleaned.strip()
+
+    # Fast path
     try:
         json.loads(cleaned)
         return cleaned
-    except json.JSONDecodeError:
+    except Exception:
         pass
 
-    # Find the first occurrence of '{' or '['
-    json_start_index = -1
-    for i, char in enumerate(cleaned):
-        if char == '{' or char == '[':
-            json_start_index = i
-            break
+    # Find first JSON object
+    start = cleaned.find("{")
 
-    if json_start_index == -1:
+    if start == -1:
         return None
 
-    # Attempt to find the matching closing brace/bracket
-    # This is a simplified approach and might need more robustness for deeply nested structures
-    # but should work for the expected top-level JSON object/array.
     depth = 0
-    json_end_index = -1
-    for i in range(json_start_index, len(cleaned)):
-        if cleaned[i] == '{' or cleaned[i] == '[':
+    in_string = False
+    escape = False
+
+    for i in range(start, len(cleaned)):
+        ch = cleaned[i]
+
+        if escape:
+            escape = False
+            continue
+
+        if ch == "\\":
+            escape = True
+            continue
+
+        if ch == '"':
+            in_string = not in_string
+            continue
+
+        if in_string:
+            continue
+
+        if ch == "{":
             depth += 1
-        elif cleaned[i] == '}' or cleaned[i] == ']':
+
+        elif ch == "}":
             depth -= 1
-        
-        if depth == 0 and (cleaned[i] == '}' or cleaned[i] == ']'):
-            json_end_index = i
-            break
-    
-    if json_end_index != -1:
-        candidate = cleaned[json_start_index : json_end_index + 1]
-        try:
-            json.loads(candidate)
-            return candidate
-        except json.JSONDecodeError:
-            pass # Continue to next potential JSON if this one fails
+
+            if depth == 0:
+                candidate = cleaned[start : i + 1]
+
+                try:
+                    json.loads(candidate)
+                    return candidate
+                except Exception:
+                    return None
 
     return None
 
 
 def parse_gemini_response(response_text: str) -> dict:
     """
-    Parses the raw text response from the Gemini API, which is expected to be a JSON string.
+    Parse Gemini response into dictionary.
     """
-    cleaned_text = response_text.strip()
-    json_string = _extract_json_from_text(cleaned_text)
-    if json_string is None:
-        raise ValueError(
-            "Failed to extract JSON from Gemini response. "
-            f"Response preview: {cleaned_text[:300]!r}"
-        )
+
+    print("\n========== RAW RESPONSE ==========")
+    print(response_text)
+    print("==================================\n")
+
+    json_string = _extract_json_from_text(response_text)
 
     if json_string is None:
         raise ValueError(
-            "Failed to extract JSON from Gemini response. "
-            f"Response preview: {cleaned_text[:300]!r}"
+            "Failed to extract JSON from Gemini response.\n"
+            f"Response preview:\n{response_text[:1000]}"
         )
 
     try:
         parsed_data = json.loads(json_string)
-        
-        # Check for essential keys and provide defaults if missing
-        required_keys_with_defaults = {
+
+        required_defaults = {
             "title": "",
             "story": "",
             "scenes": [],
             "thumbnail_prompt": "",
             "youtube_description": "",
-            "hashtags": []
+            "hashtags": [],
         }
-        
-        for key, default_value in required_keys_with_defaults.items():
-            if key not in parsed_data:
-                print(f"Warning: Missing required key '{key}' in Gemini response. Providing default value: {default_value}")
-                parsed_data[key] = default_value
-        
+
+        for key, default_value in required_defaults.items():
+            parsed_data.setdefault(key, default_value)
+
         return parsed_data
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to decode JSON response from Gemini API: {e}")
-    except Exception as e: # Catching general Exception here as KeyError is now handled by providing defaults
-        raise ValueError(f"An unexpected error occurred during parsing: {e}")
+
+    except Exception as e:
+        raise ValueError(f"JSON parsing failed: {e}")
