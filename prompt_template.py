@@ -10,8 +10,6 @@ IMPORTANT RULES:
 - Do NOT wrap the response inside ```json.
 - Do NOT include explanations.
 - Do NOT include any text before or after the JSON.
-- The response must start with {
-- The response must end with }
 
 Required JSON structure:
 
