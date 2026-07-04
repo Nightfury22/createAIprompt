@@ -14,24 +14,38 @@ def _extract_json_from_text(text: str) -> str | None:
     except json.JSONDecodeError:
         pass
 
-    for start_char, end_char in (("{", "}"), ("[", "]")):
-        start_idx = cleaned.find(start_char)
-        if start_idx == -1:
-            continue
+    # Find the first occurrence of '{' or '['
+    json_start_index = -1
+    for i, char in enumerate(cleaned):
+        if char == '{' or char == '[':
+            json_start_index = i
+            break
 
-        depth = 0
-        for idx in range(start_idx, len(cleaned)):
-            if cleaned[idx] == start_char:
-                depth += 1
-            elif cleaned[idx] == end_char:
-                depth -= 1
-                if depth == 0:
-                    candidate = cleaned[start_idx:idx + 1]
-                    try:
-                        json.loads(candidate)
-                        return candidate
-                    except json.JSONDecodeError:
-                        break
+    if json_start_index == -1:
+        return None
+
+    # Attempt to find the matching closing brace/bracket
+    # This is a simplified approach and might need more robustness for deeply nested structures
+    # but should work for the expected top-level JSON object/array.
+    depth = 0
+    json_end_index = -1
+    for i in range(json_start_index, len(cleaned)):
+        if cleaned[i] == '{' or cleaned[i] == '[':
+            depth += 1
+        elif cleaned[i] == '}' or cleaned[i] == ']':
+            depth -= 1
+        
+        if depth == 0 and (cleaned[i] == '}' or cleaned[i] == ']'):
+            json_end_index = i
+            break
+    
+    if json_end_index != -1:
+        candidate = cleaned[json_start_index : json_end_index + 1]
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            pass # Continue to next potential JSON if this one fails
 
     return None
 

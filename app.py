@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import traceback
 from datetime import datetime
 from prompt_template import PROMPT_TEMPLATE
 from gemini_service import generate_content_with_gemini
@@ -40,7 +41,14 @@ if st.button("Generate Content 🚀", type="primary"):
             try:
                 full_prompt = PROMPT_TEMPLATE.format(user_prompt=user_prompt)
                 raw_gemini_response = generate_content_with_gemini(full_prompt)
-                generated_content = parse_gemini_response(raw_gemini_response)
+                print("RAW_GEMINI_RESPONSE:\n", repr(raw_gemini_response))
+                try:
+                    generated_content = parse_gemini_response(raw_gemini_response)
+                except Exception as pe:
+                    print("Parser error:\n", pe)
+                    traceback.print_exc()
+                    st.error(f"Parsing Error: {pe}. Check console for raw response.")
+                    st.stop()
 
                 st.success("Content generated successfully!")
 
