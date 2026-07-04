@@ -4,8 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-
 def generate_content_with_gemini(prompt: str) -> str:
     """
     Communicates with the Gemini API to generate content based on the provided prompt.
@@ -29,6 +27,7 @@ def generate_content_with_gemini(prompt: str) -> str:
         )
 
         response = model.generate_content(prompt)
+        print(f"Raw Gemini Response:\n---\n{response.text}\n---")
 
         if response.parts:
             return response.text
