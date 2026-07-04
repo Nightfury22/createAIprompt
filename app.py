@@ -40,7 +40,10 @@ if st.button("Generate Content 🚀", type="primary"):
     else:
         with st.spinner("Generating content with Gemini... This might take a moment."):
             try:
-                full_prompt = PROMPT_TEMPLATE.format(user_prompt=user_prompt)
+                full_prompt = PROMPT_TEMPLATE.replace(
+                    "{user_prompt}",
+                    user_prompt
+                )
                 raw_gemini_response = generate_content_with_gemini(full_prompt)
                 print("RAW_GEMINI_RESPONSE:\n", repr(raw_gemini_response))
                 try:
