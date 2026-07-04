@@ -1,5 +1,5 @@
 import os
-import google.generativeai as genai
+import google.genai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,7 +13,7 @@ def generate_content_with_gemini(prompt: str) -> str:
     """
     try:
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash", # Using 1.5-flash as 2.5-flash is not available through the public API yet. Will update when it's available.
+            model_name="gemini-1.5-flash-001", # Updated to a stable model
             generation_config={
                 "temperature": 0.9,
                 "top_p": 1,
