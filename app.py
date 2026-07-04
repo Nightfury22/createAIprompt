@@ -5,6 +5,9 @@ from prompt_template import PROMPT_TEMPLATE
 from gemini_service import generate_content_with_gemini
 from parser import parse_gemini_response
 
+print(f"DEBUG: app.py is importing generate_content_with_gemini from {generate_content_with_gemini.__module__}")
+print(f"DEBUG: app.py is importing parse_gemini_response from {parse_gemini_response.__module__}")
+
 # --- UI Configuration ---
 st.set_page_config(layout="wide", page_title="AI Content Generator")
 st.title("🎥 AI Story & Content Generator")
@@ -62,10 +65,10 @@ if st.button("Generate Content 🚀", type="primary"):
                     scene_number = scene.get("scene_number", i + 1)
                     scene_title = scene.get("scene_title", "")
                     with st.expander(f"Scene {scene_number}: {scene_title}"):
-                        st.write(f"**Description:** {scene.get("description", "N/A")}")
-                        st.code(f"**Image Prompt:** {scene.get("image_prompt", "N/A")}")
+                        st.write(f"**Description:** {scene.get('description', 'N/A')}")
+                        st.code(f"**Image Prompt:** {scene.get('image_prompt', 'N/A')}")
                         st.button("Copy Image Prompt", on_click=copy_to_clipboard, args=(scene.get("image_prompt", ""),), key=f"copy_image_prompt_{i}")
-                        st.code(f"**Video Prompt:** {scene.get("video_prompt", "N/A")}")
+                        st.code(f"**Video Prompt:** {scene.get('video_prompt', 'N/A')}")
                         st.button("Copy Video Prompt", on_click=copy_to_clipboard, args=(scene.get("video_prompt", ""),), key=f"copy_video_prompt_{i}")
 
                 st.subheader("Thumbnail Prompt")

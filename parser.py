@@ -1,3 +1,4 @@
+print("DEBUG: parser.py is being executed!")
 import json
 import re
 
