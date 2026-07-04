@@ -6,22 +6,22 @@ Generate the output in a single, perfectly structured JSON response. Adhere stri
 JSON Schema:
 
 ```json
-{
+{{
   "title": "",
   "story": "",
   "scenes": [
-    {
+    {{
       "scene_number": 1,
       "scene_title": "",
       "description": "",
       "image_prompt": "",
       "video_prompt": ""
-    }
+    }}
   ],
   "thumbnail_prompt": "",
   "youtube_description": "",
   "hashtags": []
-}
+}}
 ```
 
 Instructions:

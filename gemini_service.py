@@ -11,7 +11,7 @@ def generate_content_with_gemini(prompt: str) -> str:
         client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash-001",
+            model="models/gemini-1.5-flash",
             contents=prompt,
             config={
                 "temperature": 0.9,

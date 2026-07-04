@@ -70,15 +70,24 @@ def parse_gemini_response(response_text: str) -> dict:
 
     try:
         parsed_data = json.loads(json_string)
-        # Check for essential keys
-        required_keys = ["title", "story", "scenes", "thumbnail_prompt", "youtube_description", "hashtags"]
-        for key in required_keys:
+        
+        # Check for essential keys and provide defaults if missing
+        required_keys_with_defaults = {
+            "title": "",
+            "story": "",
+            "scenes": [],
+            "thumbnail_prompt": "",
+            "youtube_description": "",
+            "hashtags": []
+        }
+        
+        for key, default_value in required_keys_with_defaults.items():
             if key not in parsed_data:
-                raise KeyError(f"Missing required key in JSON response: '{key}'")
+                print(f"Warning: Missing required key '{key}' in Gemini response. Providing default value: {default_value}")
+                parsed_data[key] = default_value
+        
         return parsed_data
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to decode JSON response from Gemini API: {e}")
-    except KeyError as ke:
-        raise ValueError(f"JSON structure error: {ke}. Response preview: {json_string[:300]!r}")
-    except Exception as e:
+    except Exception as e: # Catching general Exception here as KeyError is now handled by providing defaults
         raise ValueError(f"An unexpected error occurred during parsing: {e}")
