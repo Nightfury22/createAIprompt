@@ -5,6 +5,7 @@ from datetime import datetime
 from prompt_template import PROMPT_TEMPLATE
 from gemini_service import generate_content_with_gemini
 from parser import parse_gemini_response
+import os
 
 print(f"DEBUG: app.py is importing generate_content_with_gemini from {generate_content_with_gemini.__module__}")
 print(f"DEBUG: app.py is importing parse_gemini_response from {parse_gemini_response.__module__}")
@@ -53,11 +54,143 @@ if st.button("Generate Content 🚀", type="primary"):
                 st.success("Content generated successfully!")
 
                 # Save to outputs directory
+
+                # Create outputs directory
+                os.makedirs("outputs", exist_ok=True)
+
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_filename = f"outputs/content_{timestamp}.json"
-                with open(output_filename, "w", encoding="utf-8") as f:
+                output_dir = f"outputs/content_{timestamp}"
+
+                os.makedirs(output_dir, exist_ok=True)
+
+                # -------------------------
+                # Save full JSON
+                # -------------------------
+                json_file = os.path.join(output_dir, "content.json")
+
+                with open(json_file, "w", encoding="utf-8") as f:
                     json.dump(generated_content, f, indent=2, ensure_ascii=False)
-                st.markdown(f"*Output saved to `{output_filename}`*", help="Check the `outputs` directory in your project.")
+
+                # -------------------------
+                # Save title
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "title.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+                    f.write(generated_content.get("title", ""))
+
+                # -------------------------
+                # Save story
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "story.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+                    f.write(generated_content.get("story", ""))
+
+                # -------------------------
+                # Save thumbnail prompt
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "thumbnail_prompt.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+                    f.write(generated_content.get("thumbnail_prompt", ""))
+
+                # -------------------------
+                # Save YouTube description
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "youtube_description.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+                    f.write(generated_content.get("youtube_description", ""))
+
+                # -------------------------
+                # Save hashtags
+                # -------------------------
+                hashtags = generated_content.get("hashtags", [])
+
+                with open(
+                    os.path.join(output_dir, "hashtags.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+                    f.write("\n".join(hashtags))
+
+                # -------------------------
+                # Save image prompts
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "image_prompts.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+
+                    for scene in generated_content.get("scenes", []):
+                        f.write(
+                            f"Scene {scene.get('scene_number', '')}: "
+                            f"{scene.get('scene_title', '')}\n"
+                        )
+                        f.write(scene.get("image_prompt", ""))
+                        f.write("\n")
+                        f.write("=" * 80)
+                        f.write("\n\n")
+
+                # -------------------------
+                # Save video prompts
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "video_prompts.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+
+                    for scene in generated_content.get("scenes", []):
+                        f.write(
+                            f"Scene {scene.get('scene_number', '')}: "
+                            f"{scene.get('scene_title', '')}\n"
+                        )
+                        f.write(scene.get("video_prompt", ""))
+                        f.write("\n")
+                        f.write("=" * 80)
+                        f.write("\n\n")
+
+                # -------------------------
+                # Save scene details
+                # -------------------------
+                with open(
+                    os.path.join(output_dir, "scenes.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+
+                    for scene in generated_content.get("scenes", []):
+
+                        f.write(
+                            f"Scene {scene.get('scene_number', '')}\n"
+                        )
+
+                        f.write(
+                            f"Title: {scene.get('scene_title', '')}\n\n"
+                        )
+
+                        f.write(
+                            f"Description:\n{scene.get('description', '')}\n\n"
+                        )
+
+                        f.write("=" * 100)
+                        f.write("\n\n")
+
+                st.markdown(
+                    f"✅ Output saved to `{output_dir}`"
+                )
+                # st.markdown(f"*Output saved to `{output_filename}`*", help="Check the `outputs` directory in your project.")
 
                 # --- Display Results ---
                 st.subheader("YouTube Video Title")
@@ -74,9 +207,19 @@ if st.button("Generate Content 🚀", type="primary"):
                     scene_title = scene.get("scene_title", "")
                     with st.expander(f"Scene {scene_number}: {scene_title}"):
                         st.write(f"**Description:** {scene.get('description', 'N/A')}")
-                        st.code(f"**Image Prompt:** {scene.get('image_prompt', 'N/A')}")
+                        st.text_area(
+                        "Image Prompt",
+                        scene.get("image_prompt", ""),
+                        height=150,
+                        key=f"image_prompt_{i}",
+                        )
                         st.button("Copy Image Prompt", on_click=copy_to_clipboard, args=(scene.get("image_prompt", ""),), key=f"copy_image_prompt_{i}")
-                        st.code(f"**Video Prompt:** {scene.get('video_prompt', 'N/A')}")
+                        st.text_area(
+                            "Video Prompt",
+                            scene.get("video_prompt", ""),
+                            height=150,
+                            key=f"video_prompt_{i}",
+                        )
                         st.button("Copy Video Prompt", on_click=copy_to_clipboard, args=(scene.get("video_prompt", ""),), key=f"copy_video_prompt_{i}")
 
                 st.subheader("Thumbnail Prompt")
