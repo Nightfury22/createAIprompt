@@ -39,6 +39,4 @@ Instructions:
 
 User Prompt: {user_prompt}
 
-Ensure the entire output is a single, valid JSON object, with no preamble or postamble text. Do not use markdown code blocks for the JSON itself, just output the raw JSON directly.
-
-"""
+Ensure the entire output is a single, valid JSON object, with no preamble or postamble text. The JSON object MUST contain the keys "title", "story", "scenes", "thumbnail_prompt", "youtube_description", and "hashtags". If any of these fields cannot be generated, use an empty string or an empty list as appropriate."""

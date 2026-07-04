@@ -62,9 +62,23 @@ def parse_gemini_response(response_text: str) -> dict:
             f"Response preview: {cleaned_text[:300]!r}"
         )
 
+    if json_string is None:
+        raise ValueError(
+            "Failed to extract JSON from Gemini response. "
+            f"Response preview: {cleaned_text[:300]!r}"
+        )
+
     try:
-        return json.loads(json_string)
+        parsed_data = json.loads(json_string)
+        # Check for essential keys
+        required_keys = ["title", "story", "scenes", "thumbnail_prompt", "youtube_description", "hashtags"]
+        for key in required_keys:
+            if key not in parsed_data:
+                raise KeyError(f"Missing required key in JSON response: '{key}'")
+        return parsed_data
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to decode JSON response from Gemini API: {e}")
+    except KeyError as ke:
+        raise ValueError(f"JSON structure error: {ke}. Response preview: {json_string[:300]!r}")
     except Exception as e:
         raise ValueError(f"An unexpected error occurred during parsing: {e}")
