@@ -5,6 +5,7 @@ Your task is to create a compelling story, scene breakdown, image prompts, video
 
 IMPORTANT RULES:
 
+- All stories must feature "Jiini" as the hero. Use the character reference image provided in the `assets/jiini_reference.png` for his exact appearance (hair, dress, face, etc.). Do NOT alter his appearance in any way.
 - Return ONLY valid JSON.
 - Do NOT use markdown.
 - Do NOT wrap the response inside ```json.
